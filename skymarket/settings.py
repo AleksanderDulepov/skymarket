@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'djoser',
     "rest_framework",
+    'rest_framework_simplejwt',
     "users",
     "ads",
     "redoc",
@@ -82,18 +84,30 @@ WSGI_APPLICATION = "skymarket.wsgi.application"
 
 # TODO здесь мы настраиваем аутентификацию и пагинацию
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PAGINATION_CLASS":"rest_framework.pagination.PageNumberPagination",
+	"PAGE_SIZE":10,
 }
+
 # TODO здесь мы настраиваем Djoser
-DJOSER = {
-}
+DJOSER = {'SERIALIZERS': {'user_create': 'users.serializers.UserRegistrationSerializer'},
+          'LOGIN_FIELD': 'email',
+          }
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 # TODO здесь необходимо настроить подключение к БД
+# DATABASES = {
+# }
 DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -153,3 +167,5 @@ EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
+
+AUTH_USER_MODEL = 'users.User'
