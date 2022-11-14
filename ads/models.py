@@ -14,6 +14,15 @@ class Ad(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='images/', null=True)
 
+    @property
+    def author_first_name(self):
+        return self.author.first_name if self.author.first_name else None
+
+    @property
+    def author_last_name(self):
+        return self.author.last_name if self.author.last_name else None
+
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Обьявление"

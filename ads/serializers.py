@@ -16,5 +16,10 @@ class AdSerializer(serializers.ModelSerializer):
 
 
 class AdDetailSerializer(serializers.ModelSerializer):
-    # TODO сериалайзер для модели
-    pass
+    # author_first_name=serializers.CharField(max_length=150)
+    # author_last_name = serializers.CharField(max_length=150)
+
+    class Meta:
+        model = Ad
+        fields = ["pk", "image","title","price","description","author_first_name","author_last_name","author_id"]
+
