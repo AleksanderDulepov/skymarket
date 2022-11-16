@@ -12,8 +12,9 @@ from users.urls import users_router
 urlpatterns = [
     path("api/admin/", admin.site.urls),
     path("api/redoc-tasks/", include("redoc.urls")),
-    path('users/login/', TokenObtainPairView.as_view()), #тут можно поизящнее
-    path('users/login/refresh/', TokenRefreshView.as_view()),    #тут можно поизящнее
+    path('token/', TokenObtainPairView.as_view()),
+    path('refresh/', TokenRefreshView.as_view()),
+    path('ads/', include("ads.urls")),
 ]
 
 urlpatterns+=users_router.urls

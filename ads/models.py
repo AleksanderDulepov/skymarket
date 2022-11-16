@@ -41,6 +41,18 @@ class Comment(models.Model):
                            related_name="com_advert")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def author_first_name(self):
+        return self.author.first_name if self.author.first_name else None
+
+    @property
+    def author_last_name(self):
+        return self.author.last_name if self.author.last_name else None
+
+    @property
+    def author_image(self):
+        return self.author.image if self.author.image else None
+
     class Meta:
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
