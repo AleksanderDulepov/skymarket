@@ -47,14 +47,19 @@ class AdListSerializer(serializers.ModelSerializer):
         model = Ad
         exclude=["created_at", "author"]
 
+
 class AdDetailSerializer(serializers.ModelSerializer):
     author_first_name=serializers.CharField(max_length=150, required=False)
     author_last_name = serializers.CharField(max_length=150, required=False)
-    author = serializers.SlugRelatedField(read_only=True, slug_field="id")
 
     class Meta:
         model = Ad
         fields = ["pk", "image","title","price","description","author_first_name","author_last_name","author"]
+
+
+
+class AdCreateSerializer(AdDetailSerializer):
+    author = serializers.SlugRelatedField(read_only=True, slug_field="id")
 
     def create(self, validated_data):
         user_id = self.context['request'].user.id  # так достаем инфу о request.user
@@ -63,3 +68,10 @@ class AdDetailSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class CommentUpdateSerializer(CommentDetailSerializer):
+
+    created_at=serializers.DateTimeField(read_only=True)
+    id=serializers.IntegerField(read_only=True)
+
+    author=serializers.SlugRelatedField(read_only=True, slug_field="id")
+    ad=serializers.SlugRelatedField(read_only=True, slug_field="id")

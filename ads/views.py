@@ -1,30 +1,43 @@
 from rest_framework import pagination, viewsets
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 
 from ads.models import Ad, Comment
+from ads.permissions import OwnerOrAdminPermission
 from ads.serializers import AdSerializer, AdDetailSerializer, CommentDetailSerializer, AdListSerializer, \
-    CommentCreateSerializer
+    CommentCreateSerializer, AdCreateSerializer, CommentUpdateSerializer
 
+
+class AdPagination(pagination.PageNumberPagination):
+	page_size = 4
 
 class AdViewSet(ModelViewSet):
     queryset = Ad.objects.all()
     default_serializer = AdSerializer
-    permission_classes = [IsAuthenticated]
+    default_permission = [IsAuthenticated]
+    pagination_class = AdPagination
+    permission_classes_by_action = {"list": [AllowAny],
+                                    "partial_update": [IsAuthenticated, OwnerOrAdminPermission],
+                                    "destroy": [IsAuthenticated, OwnerOrAdminPermission],
+                                    }
 
     serializer_classes = {"list":AdListSerializer,
                           "retrieve":AdDetailSerializer,
-                          "create":AdDetailSerializer}
+                          "create":AdCreateSerializer}
 
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action, self.default_serializer)
+
+    def get_permissions(self):
+        return [perm() for perm in self.permission_classes_by_action.get(self.action, self.default_permission)]
 
 
 class AdListView(ListAPIView):
     queryset=Ad.objects.all()
     serializer_class=AdListSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = AdPagination
 
     def get(self, request, *args, **kwargs):
         self.queryset = self.queryset.filter(author=request.user.id)
@@ -35,12 +48,21 @@ class AdListView(ListAPIView):
 class CommentsViewSet(ModelViewSet):
     queryset=Comment.objects.all()
     default_serializer=CommentDetailSerializer
-    permission_classes = [IsAuthenticated]
+    default_permission = [IsAuthenticated]
 
-    serializer_classes = {"create": CommentCreateSerializer}
+    serializer_classes = {"create": CommentCreateSerializer,
+                          "partial_update":CommentUpdateSerializer
+                          }
+
+    permission_classes_by_action = {"partial_update": [IsAuthenticated, OwnerOrAdminPermission],
+                                    "destroy": [IsAuthenticated, OwnerOrAdminPermission],
+                                    }
 
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action, self.default_serializer)
+
+    def get_permissions(self):
+        return [perm() for perm in self.permission_classes_by_action.get(self.action, self.default_permission)]
 
 
     def list(self, request, *args, **kwargs):
@@ -54,11 +76,14 @@ class CommentsViewSet(ModelViewSet):
         self.queryset = self.queryset.filter(ad=pk_ad, pk=pk_comment)
         return super(CommentsViewSet, self).retrieve(request, *args, **kwargs)
 
+    def partial_update(self, request, *args, **kwargs):
+        pk_ad = kwargs.get('id')
+        pk_comment = kwargs.get('pk')
+        self.queryset = self.queryset.filter(ad=pk_ad, pk=pk_comment)
+        return super(CommentsViewSet, self).partial_update(request, *args, **kwargs)
 
-
-#обьявления http://localhost:8000/api/ads/
-# http://localhost:8000/api/{id}
-# http://localhost:8000/api/me/
-
-#комменты http://localhost:8000/api/api/{ad_pk}/comments/
-#http://localhost:8000/api/ads/{ad_pk}/comments/{id}/
+    def destroy(self, request, *args, **kwargs):
+        pk_ad = kwargs.get('id')
+        pk_comment = kwargs.get('pk')
+        self.queryset = self.queryset.filter(ad=pk_ad, pk=pk_comment)
+        return super(CommentsViewSet, self).destroy(request, *args, **kwargs)
