@@ -4,6 +4,11 @@ from rest_framework.generics import get_object_or_404
 from ads.models import Ad, Comment
 from users.models import User
 
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = "__all__"
+
 
 class CommentDetailSerializer(serializers.ModelSerializer):
     author_first_name=serializers.CharField(max_length=150, required=False)
@@ -24,7 +29,7 @@ class CommentCreateSerializer(CommentDetailSerializer):
         user_obj=get_object_or_404(User, pk=user_id)
         validated_data['author']=user_obj
 
-        adv_id=self.context.get('view').kwargs.get('pk')
+        adv_id=self.context.get('view').kwargs.get('id')
         adv_obj=get_object_or_404(Ad, pk=adv_id)
         validated_data['ad']=adv_obj
 
