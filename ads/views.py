@@ -1,8 +1,11 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import pagination, viewsets
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 
+from ads.filters import AdsTitleFilter
 from ads.models import Ad, Comment
 from ads.permissions import OwnerOrAdminPermission
 from ads.serializers import AdSerializer, AdDetailSerializer, CommentDetailSerializer, AdListSerializer, \
@@ -10,21 +13,26 @@ from ads.serializers import AdSerializer, AdDetailSerializer, CommentDetailSeria
 
 
 class AdPagination(pagination.PageNumberPagination):
-	page_size = 4
+    page_size = 4
+
 
 class AdViewSet(ModelViewSet):
     queryset = Ad.objects.all()
     default_serializer = AdSerializer
     default_permission = [IsAuthenticated]
     pagination_class = AdPagination
+    #подключение фильтрации
+    filter_backends = [DjangoFilterBackend]
+    filterset_class =AdsTitleFilter
+
     permission_classes_by_action = {"list": [AllowAny],
                                     "partial_update": [IsAuthenticated, OwnerOrAdminPermission],
                                     "destroy": [IsAuthenticated, OwnerOrAdminPermission],
                                     }
 
-    serializer_classes = {"list":AdListSerializer,
-                          "retrieve":AdDetailSerializer,
-                          "create":AdCreateSerializer}
+    serializer_classes = {"list": AdListSerializer,
+                          "retrieve": AdDetailSerializer,
+                          "create": AdCreateSerializer}
 
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action, self.default_serializer)
@@ -34,8 +42,8 @@ class AdViewSet(ModelViewSet):
 
 
 class AdListView(ListAPIView):
-    queryset=Ad.objects.all()
-    serializer_class=AdListSerializer
+    queryset = Ad.objects.all()
+    serializer_class = AdListSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = AdPagination
 
@@ -44,14 +52,13 @@ class AdListView(ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
-
 class CommentsViewSet(ModelViewSet):
-    queryset=Comment.objects.all()
-    default_serializer=CommentDetailSerializer
+    queryset = Comment.objects.all()
+    default_serializer = CommentDetailSerializer
     default_permission = [IsAuthenticated]
 
     serializer_classes = {"create": CommentCreateSerializer,
-                          "partial_update":CommentUpdateSerializer
+                          "partial_update": CommentUpdateSerializer
                           }
 
     permission_classes_by_action = {"partial_update": [IsAuthenticated, OwnerOrAdminPermission],
@@ -63,7 +70,6 @@ class CommentsViewSet(ModelViewSet):
 
     def get_permissions(self):
         return [perm() for perm in self.permission_classes_by_action.get(self.action, self.default_permission)]
-
 
     def list(self, request, *args, **kwargs):
         pk = kwargs.get('id')

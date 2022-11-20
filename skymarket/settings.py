@@ -15,7 +15,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '../.env.example')
+load_dotenv(dotenv_path)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -42,12 +44,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     'djoser',
+    'django_filters',
     "rest_framework",
     'rest_framework_simplejwt',
     "users",
     "ads",
     "redoc",
+    'drf_spectacular'
 ]
 
 
@@ -89,6 +94,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PAGINATION_CLASS":"rest_framework.pagination.PageNumberPagination",
 	"PAGE_SIZE":10,
+    "DEFAULT_SCHEMA_CLASS":"drf_spectacular.openapi.AutoSchema",
 }
 
 # TODO здесь мы настраиваем Djoser
@@ -99,14 +105,21 @@ DJOSER = {'SERIALIZERS': {'user_create': 'users.serializers.UserRegistrationSeri
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# TODO здесь необходимо настроить подключение к БД
 # DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
 # }
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "HOST": os.environ.get("DB_HOST"),
+        "NAME": os.environ.get("POSTGRES_DB"),
+        "PORT": os.environ.get("DB_PORT"),
+        "USER": os.environ.get("POSTGRES_USER"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+    },
 }
 
 # Password validation
@@ -152,6 +165,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "django_media")
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
@@ -169,3 +183,8 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
 
 AUTH_USER_MODEL = 'users.User'
+
+SPECTACULAR_SETTINGS={"TITLE":"Skymarket_API",
+                      "DESCRIPTION": "Skymarket_API_description",
+                      "VERSION":"1.0.0",
+                      }
